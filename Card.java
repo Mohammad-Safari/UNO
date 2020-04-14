@@ -50,7 +50,12 @@ class ColorCard extends Card {
         super(name, score);
     }
 
-    public void display() {
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public boolean isColored() {
+        return (color != null);
     }
 }
 
@@ -61,20 +66,22 @@ class ActionCard extends ColorCard {
         super(name, score, color);
         this.action = action;
     }
+
+    public ActionCard(String name, int score, Action action) {
+        super(name, score);
+        this.action = action;
+    }
 }
 
 class WildCard extends ColorCard {
     public WildCard(String name, int score) {
         super(name, score);
     }
-
-    public void setColor(Color color) {
-        this.color = color;
-    }
 }
 
-class WildAction extends WildCard {
+class WildAction extends ActionCard {
+
     public WildAction(String name, int score) {
-        super(name, score);
+        super(name, score, Action.WDRAW);
     }
 }
