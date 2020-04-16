@@ -36,6 +36,11 @@ public class Card {
 
     }
 
+    public boolean isWild() {
+        if ((this instanceof WildCard) || (this instanceof WildAction))
+            return true;
+        return false;
+    }
 }
 
 class ColorCard extends Card {

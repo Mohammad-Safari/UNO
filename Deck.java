@@ -1,7 +1,14 @@
 import java.util.*;
 
 enum RotateDirection {
-    ClockWise, CounterClockWise
+    ClockWise, CounterClockWise;
+
+    public RotateDirection reverse() {
+        if (this == ClockWise)
+            return CounterClockWise;
+        else
+            return ClockWise;
+    }
 }
 
 public class Deck {
@@ -10,9 +17,11 @@ public class Deck {
     private List<Player> players;
     private ListIterator<Player> current;
     private RotateDirection direction;
+    private Random rand;
 
     public Deck(Player... players) {
-        // geting players list
+        rand = new Random();
+        // filling players list
         this.players = new ArrayList<Player>();
         for (int i = 0; i < players.length; i++) {
             this.players.add(players[i]);
@@ -28,6 +37,23 @@ public class Deck {
             shuffle(redColorCards, yelColorCards, greColorCards, bluColorCards, wildCards);
         }
         // providing cards for players
+        CardProvider();
+        // first card
+        counter = new Stack<Card>();
+        {
+            Stack<Card> temp = new Stack<Card>();
+            while (deck.peek().isWild()) {
+                temp.add(deck.pop());
+            }
+            counter.add(deck.pop());
+            while (!temp.empty()) {
+                deck.add(temp.pop());
+            }
+        }
+        // default direction
+        this.direction = RotateDirection.ClockWise;
+        // starting player
+        current = this.players.listIterator(rand.nextInt(this.players.size()));
     }
 
     /**
@@ -69,7 +95,6 @@ public class Deck {
      * @param cards
      */
     public void shuffle(Stack<Card>... cards) {
-        Random rand = new Random();
         int n = cards.length;
         int sum = 0;
         for (int i = 0; i < n; i++) {
@@ -102,7 +127,7 @@ public class Deck {
     public Player nextPlayer() {
         if (direction == RotateDirection.ClockWise) {
             if (!current.hasNext())
-                current = players.listIterator();
+                current = players.listIterator(0);
             return current.next();
         } else {
             if (!current.hasPrevious())
@@ -110,4 +135,6 @@ public class Deck {
             return current.previous();
         }
     }
+
+    public boolean putCard(){}
 }
