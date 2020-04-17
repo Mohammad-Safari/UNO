@@ -180,27 +180,70 @@ public class Deck {
      * @return
      */
     public boolean addToCounter(Player player, Card card) {
-        return false;
+        // if type is wild card we should check whether it is Wild draw or not
+        if (card.isWild()) {
+            if (!card.isAction()) {
+                // wild draw usage should meet compulsion condition
+                if (possibleChoices(player) != null)
+                    return false;
+            }
+            // add some color to our wild card
+            prepareWildColor(card);
+
+        } else if (!(counter.peek().doesMatch(card))) {
+            return false;
+        }
+        checkCounter(card);
+        counter.add(card);
+        return true;
     }
 
-    public void checkCounter() {
+    ///////////////////////////////
+    public void checkCounter(Card newCard) {
+        Card card = counter.peek();
+        if (card.isAction()) {
+            if (((ActionCard) card).action == Action.DRAW) {
+            } else if (((ActionCard) card).action == Action.WDRAW) {
+            }
+        }
     }
 
-    public boolean checkCard(Card card) {
-        // if our card is standard type of color card
-        if (card.isColor())
-            // if our color card is colored
-            if (((ColorCard) card).isColored())
-                if (!card.isWild()) {
-                    // if any simple cards(color or action) color is the same as 
-                    if (((ColorCard) card).getColor() == ((ColorCard) counter.peek()).getColor())
-                        return true;
-                    // else if(){}
-                } else if (card instanceof WildCard) {
-                    
-                } else if (card instanceof WildAction) {
+    ///////////////////////////////
+    public int[] possibleChoices(Player player) {
+
+        return null;
+    }
+    ///////////////////////////////
+
+    public void prepareWildColor(Card card) {
+        Scanner sc = new Scanner(System.in);
+        Color color = Color.RED;
+        System.out.println("\t\tchoose color:\n\t\t1-red\n\t\t2-yellow\n\t\t3-green\n\t\t4-blue");
+        do {
+            int c = 0;
+            c = sc.nextInt();
+            if (c > 0 || c <= 4) {
+                switch (c) {
+                    case 1:
+                        color = Color.RED;
+                        break;
+                    case 2:
+                        color = Color.YELLOW;
+                        break;
+                    case 3:
+                        color = Color.GREEN;
+                        break;
+                    case 4:
+                        color = Color.BLUE;
+                        break;
                 }
-
-        return false;
+                break;
+            } else {
+                System.err.println("please enter proper number!");
+            }
+        } while (true);
+        ((ColorCard) card).setColor(color);
+        sc.close();
     }
+
 }

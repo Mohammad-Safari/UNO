@@ -30,7 +30,7 @@ public class Player {
      */
     public boolean putCard(Deck gDeck, int index) {
         if ((!deck.isEmpty()) || (index >= deck.size() || index < 0)) {
-            if (gDeck.addCounter(this, deck.get(index))) {
+            if (gDeck.addToCounter(this, deck.get(index))) {
                 score += deck.get(index).score;
                 deck.remove(index);
                 return true;

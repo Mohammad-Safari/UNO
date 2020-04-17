@@ -57,7 +57,7 @@ abstract public class Card {
      * checking whether the ard is sort of wild or not
      */
     public boolean isWild() {
-        return ((this instanceof WildCard) || (this instanceof WildAction));
+        return (this instanceof WildCard);
     }
 
     /**
@@ -70,7 +70,7 @@ abstract public class Card {
 }
 
 /**
- * colored card
+ * base class of colored card
  */
 abstract class ColorCard extends Card {
     protected Color color;
@@ -121,14 +121,45 @@ abstract class ColorCard extends Card {
      */
     public boolean sameColor(Card card) {
         if (card instanceof ColorCard)
-            return (this.color == ((ColorCard) card).getColor());
+            if (isColored())
+                return (this.color == ((ColorCard) card).getColor());
         return false;
     }
-    public boolean doesMatch(Card card){
-        if(card instanceof ColorCard)
-        {
-            if(this.sameColor(card))
-        }
+
+    abstract public boolean doesMatch(Card card);
+}
+
+/**
+ * color card with number
+ */
+class NumberCard extends ColorCard {
+    public final int number;
+
+    public NumberCard(String name, int score, Color color, int number) {
+        super(name, score, color);
+        this.number = number;
+    }
+
+    /**
+     * only used for wild draw cards
+     * 
+     * @param name
+     * @param score
+     */
+    public NumberCard(String name, int score, int number) {
+        super(name, score);
+        this.number = number;
+    }
+
+    @Override
+    public boolean doesMatch(Card card) {
+        if (card instanceof ColorCard)
+            if (this.sameColor(card))
+                return true;
+        if (card instanceof NumberCard)
+            if (this.number == ((NumberCard) card).number)
+                return true;
+        return false;
     }
 }
 
@@ -153,6 +184,17 @@ class ActionCard extends ColorCard {
         super(name, score);
         this.action = action;
     }
+
+    @Override
+    public boolean doesMatch(Card card) {
+        if (card instanceof ColorCard)
+            if (this.sameColor(card))
+                return true;
+        if (card instanceof ActionCard)
+            if (this.action == ((ActionCard) card).action)
+                return true;
+        return false;
+    }
 }
 
 /**
@@ -161,6 +203,14 @@ class ActionCard extends ColorCard {
 class WildCard extends ColorCard {
     public WildCard(String name, int score) {
         super(name, score);
+    }
+
+    @Override
+    public boolean doesMatch(Card card) {
+        if (card instanceof ColorCard)
+            if (this.sameColor(card))
+                return true;
+        return false;
     }
 }
 
@@ -171,5 +221,13 @@ class WildAction extends ActionCard {
 
     public WildAction(String name, int score) {
         super(name, score, Action.WDRAW);
+    }
+
+    @Override
+    public boolean doesMatch(Card card) {
+        if (card instanceof ColorCard)
+            if (this.sameColor(card))
+                return true;
+        return false;
     }
 }
