@@ -1,5 +1,8 @@
 import java.util.*;
 
+/**
+ * two only directions
+ */
 enum RotateDirection {
     ClockWise, CounterClockWise;
 
@@ -11,21 +14,41 @@ enum RotateDirection {
     }
 }
 
+/**
+ * game main deck where all card are created and shuffled, all players registerd
+ * and cards are provided to players, and the counter where players return their
+ * cards
+ * 
+ * @author M.Safari
+ * @version 1399.01.25
+ */
 public class Deck {
+    // first stack fromwhere players draw card
     private Stack<Card> deck;
+    // second stack where cards are returned to game deck
     private Stack<Card> counter;
+    // a list of players
     private List<Player> players;
+    // a list iterator(with the capability of going forward and back) for going
+    // through players arraylist
     private ListIterator<Player> current;
+    // direction of game in each turn
     private RotateDirection direction;
+    // a random object for making random numbers
     private Random rand;
 
     public Deck(Player... players) {
+        // start time of random object
         rand = new Random();
         // filling players list
         this.players = new ArrayList<Player>();
         for (int i = 0; i < players.length; i++) {
             this.players.add(players[i]);
         }
+        // starting player
+        current = this.players.listIterator(rand.nextInt(this.players.size()));
+        // default direction
+        this.direction = RotateDirection.ClockWise;
         // preparing cards and shuffling them
         deck = new Stack<Card>();
         {
@@ -38,7 +61,7 @@ public class Deck {
         }
         // providing cards for players
         CardProvider();
-        // first card
+        // first card in counter
         counter = new Stack<Card>();
         {
             Stack<Card> temp = new Stack<Card>();
@@ -50,10 +73,6 @@ public class Deck {
                 deck.add(temp.pop());
             }
         }
-        // default direction
-        this.direction = RotateDirection.ClockWise;
-        // starting player
-        current = this.players.listIterator(rand.nextInt(this.players.size()));
     }
 
     /**
@@ -116,7 +135,7 @@ public class Deck {
      */
     public void CardProvider() {
         for (int i = 0; i < 7; i++) {
-            Iterator<Player> player = players.iterator();
+            Iterator<Player> player = players.listIterator(0);
             while (player.hasNext()) {
                 player.next().drawCard(deck.pop());
             }
@@ -124,6 +143,12 @@ public class Deck {
         }
     }
 
+    /**
+     * circling the iterator of players list(moving through players list like a
+     * circle)
+     * 
+     * @return
+     */
     public Player nextPlayer() {
         if (direction == RotateDirection.ClockWise) {
             if (!current.hasNext())
@@ -136,5 +161,46 @@ public class Deck {
         }
     }
 
-    public boolean putCard(){}
+    /**
+     * adding card to players deck from main deck(deck stack)
+     * 
+     * @param player
+     * @param card
+     */
+    public void giveCard(Player player) {
+        if (!deck.isEmpty())
+            player.drawCard(deck.pop());
+    }
+
+    /**
+     * placing players card in game deck(counter stack)
+     * 
+     * @param player
+     * @param card
+     * @return
+     */
+    public boolean addToCounter(Player player, Card card) {
+        return false;
+    }
+
+    public void checkCounter() {
+    }
+
+    public boolean checkCard(Card card) {
+        // if our card is standard type of color card
+        if (card.isColor())
+            // if our color card is colored
+            if (((ColorCard) card).isColored())
+                if (!card.isWild()) {
+                    // if any simple cards(color or action) color is the same as 
+                    if (((ColorCard) card).getColor() == ((ColorCard) counter.peek()).getColor())
+                        return true;
+                    // else if(){}
+                } else if (card instanceof WildCard) {
+                    
+                } else if (card instanceof WildAction) {
+                }
+
+        return false;
+    }
 }

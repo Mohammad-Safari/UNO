@@ -1,3 +1,6 @@
+/**
+ * possible types of color
+ */
 enum Color {
     RED, YELLOW, GREEN, BLUE;
 
@@ -19,14 +22,20 @@ enum Color {
     }
 }
 
+/**
+ * possible types of actions
+ */
 enum Action {
     SKIP, REVERSE, DRAW, WDRAW
 }
 
 /**
- * Card
+ * Card base class
+ * 
+ * @author M.Safari
+ * @version 1399.01.24
  */
-public class Card {
+abstract public class Card {
     public final String name;
     public final int score;
 
@@ -36,14 +45,34 @@ public class Card {
 
     }
 
-    public boolean isWild() {
-        if ((this instanceof WildCard) || (this instanceof WildAction))
-            return true;
-        return false;
+    public boolean isNumber() {
+        return (this instanceof NumberCard);
     }
+
+    public boolean isAction() {
+        return (this instanceof ActionCard);
+    }
+
+    /**
+     * checking whether the ard is sort of wild or not
+     */
+    public boolean isWild() {
+        return ((this instanceof WildCard) || (this instanceof WildAction));
+    }
+
+    /**
+     * matching test with given card!
+     * 
+     * @param card
+     * @return
+     */
+    public abstract boolean doesMatch(Card card);
 }
 
-class ColorCard extends Card {
+/**
+ * colored card
+ */
+abstract class ColorCard extends Card {
     protected Color color;
 
     public ColorCard(String name, int score, Color color) {
@@ -51,19 +80,61 @@ class ColorCard extends Card {
         this.color = color;
     }
 
+    /**
+     * only used for wild cards
+     * 
+     * @param name
+     * @param score
+     */
     public ColorCard(String name, int score) {
         super(name, score);
     }
 
+    /**
+     * only for wild cards
+     * 
+     * @param color
+     */
     public void setColor(Color color) {
-        this.color = color;
+        if (color == null)
+            this.color = color;
     }
 
+    /**
+     * checking whether card is colored or not
+     */
     public boolean isColored() {
         return (color != null);
     }
+
+    /**
+     * @return the color
+     */
+    public Color getColor() {
+        return color;
+    }
+
+    /**
+     * 
+     * @param card
+     * @return
+     */
+    public boolean sameColor(Card card) {
+        if (card instanceof ColorCard)
+            return (this.color == ((ColorCard) card).getColor());
+        return false;
+    }
+    public boolean doesMatch(Card card){
+        if(card instanceof ColorCard)
+        {
+            if(this.sameColor(card))
+        }
+    }
 }
 
+/**
+ * color card with action
+ */
 class ActionCard extends ColorCard {
     public final Action action;
 
@@ -72,18 +143,30 @@ class ActionCard extends ColorCard {
         this.action = action;
     }
 
+    /**
+     * only used for wild draw cards
+     * 
+     * @param name
+     * @param score
+     */
     public ActionCard(String name, int score, Action action) {
         super(name, score);
         this.action = action;
     }
 }
 
+/**
+ * simple wild card
+ */
 class WildCard extends ColorCard {
     public WildCard(String name, int score) {
         super(name, score);
     }
 }
 
+/**
+ * wild draw card
+ */
 class WildAction extends ActionCard {
 
     public WildAction(String name, int score) {
