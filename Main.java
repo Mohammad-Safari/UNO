@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -46,21 +47,51 @@ public class Main {
         players[1] = new Player("Mohammad");
         players[2] = new Player("Saeed");
         Deck gDeck = new Deck(players);
-        // preparing current player
-        Player player;
+
+        // holding current player
+        Player player = players[0];
         do {
             player = gDeck.nextPlayer();
             gDeck.displayDeck(player);
             Thread.sleep(500);
-            if (gDeck.possibleChoices(player).size() == 0 && gDeck.possibleWildDraws(player).size() == 0) {
-                System.out.println("Press enter to draw a card!");
+            //
+            ArrayList<Integer> setOne, setTwo;
+            setOne = gDeck.possibleChoices(player);
+            setTwo = gDeck.possibleWildDraws(player);
+            //
+            if (setOne.size() == 0 && setTwo.size() == 0) {
+                System.out.println("Enter d to draw a card!");
                 sc.next();
-                player.drawCard(card);
+                gDeck.giveCard(player);
+                gDeck.displayDeck(player);
             }
+            //
             System.out.println("please enter the card number to put:");
+            System.out.println("possible choices: ");
+            for (int ind : setOne) {
+                System.out.print(ind + 1 + " ");
+            }
+            for (int ind : setTwo) {
+                System.out.print(ind + 1 + " ");
+            }
+            System.out.println();
+            int index;
+            do {
+                index = sc.nextInt() - 1;
+                if (index >= 0 && index < player.getDeck().size())
+                    if (player.putCard(gDeck, index))
+                        break;
+                    else
+                        System.err.println("can not put this card");
+                else {
+                    System.err.println("enter number in range!");
+                }
+            } while (true);
 
-            System.out.println("select");
-
-        } while (player.isDeckEmpty());
+        } while (!player.isDeckEmpty());
+        for (Player ply : players)
+            if (!(player.equals(ply)))
+                player.setScore(player.getScore() + ply.getScore());
+        System.out.println("player " + player.name + " won");
     }
 }

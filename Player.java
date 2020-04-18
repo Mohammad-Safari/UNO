@@ -79,8 +79,7 @@ public class Player {
         System.out.println();
         for (Card card : deck) {
             Color color = ((ColorCard) card).getColor();
-            System.out.print(
-                    "║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║ ");
+            System.out.print("║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║ ");
         }
         // 4th line
         System.out.println();
@@ -97,5 +96,19 @@ public class Player {
             System.out.print("╚══════╝ ");
         }
         System.out.println();
+    }
+
+    /**
+     * @return the score
+     */
+    public int getScore() {
+        return score;
+    }
+
+    /**
+     * @param score the score to set
+     */
+    public void setScore(int score) {
+        this.score = score;
     }
 }

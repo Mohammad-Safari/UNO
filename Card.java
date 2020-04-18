@@ -20,11 +20,13 @@ enum Color {
         }
         return "";
     }
-    public String bold(){
-        return ("\033[1m"+this.color(1));
+
+    public String bold() {
+        return ("\033[1m" + this.color(1));
     }
-    public String underLine(){
-        return("\033[4m" + this.bold());
+
+    public String underLine() {
+        return ("\033[4m" + this.bold());
     }
 }
 
@@ -107,7 +109,7 @@ abstract class ColorCard extends Card {
      * @param color
      */
     public void setColor(Color color) {
-        if (color == Color.WILD)
+        if (this.color == Color.WILD)
             this.color = color;
     }
 
@@ -159,6 +161,8 @@ class NumberCard extends ColorCard {
         if (card instanceof NumberCard)
             if (this.number == ((NumberCard) card).number)
                 return true;
+        if (card.isWild() && ((ColorCard) card).isColored())
+            return true;
         return false;
     }
 }
@@ -182,6 +186,8 @@ class ActionCard extends ColorCard {
         if (card instanceof ActionCard)
             if (this.action == ((ActionCard) card).action)
                 return true;
+        if (card.isWild() && ((ColorCard) card).isColored())
+            return true;
         return false;
     }
 }
@@ -197,7 +203,7 @@ class WildCard extends ColorCard {
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
-            if (this.isColored()&&this.sameColor(card))
+            if (this.isColored() && this.sameColor(card))
                 return true;
         return false;
     }
@@ -215,7 +221,7 @@ class WildAction extends ActionCard {
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
-            if (this.isColored()&&this.sameColor(card))
+            if (this.isColored() && this.sameColor(card))
                 return true;
         return false;
     }

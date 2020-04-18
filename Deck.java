@@ -37,6 +37,10 @@ public class Deck {
     // a random object for making random numbers
     private Random rand;
     private int penalties;
+    private boolean skip;
+    private boolean reverse;
+    private boolean draw;
+    private boolean wdraw;
 
     public Deck(Player[] players) {
         // start time of random object
@@ -58,7 +62,7 @@ public class Deck {
             Stack<Card> greColorCards = colorCards(Color.GREEN);
             Stack<Card> bluColorCards = colorCards(Color.BLUE);
             Stack<Card> wildCards = wildCards();
-            shuffle(redColorCards, yelColorCards, wildCards, greColorCards, bluColorCards);
+            shuffle(redColorCards, yelColorCards, greColorCards, bluColorCards, wildCards);
         }
         // providing cards for players
         CardProvider();
@@ -67,14 +71,19 @@ public class Deck {
         {
             Stack<Card> temp = new Stack<Card>();
             while (deck.peek().isWild()) {
-                temp.add(deck.pop());
+                temp.push(deck.pop());
             }
-            counter.add(deck.pop());
+            counter.push(deck.pop());
             while (!temp.empty()) {
-                deck.add(temp.pop());
+                deck.push(temp.pop());
             }
+            checkCounter(nextPlayer());
         }
         penalties = 0;
+        skip = false;
+        reverse = false;
+        draw = false;
+        wdraw = false;
     }
 
     /**
@@ -84,15 +93,16 @@ public class Deck {
      */
     public Stack<Card> colorCards(Color color) {
         Stack<Card> Cards = new Stack<Card>();
-        Cards.add(new NumberCard("0", 0, color));
+        for (int j = 1; j <= 9; j++) {
+            Cards.push(new NumberCard("" + j, j, color));
+        }
         for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 9; j++) {
-                Cards.add(new NumberCard("" + j, j, color));
-            }
-            Cards.add(new ActionCard("Skip", 20, color, Action.SKIP));
-            Cards.add(new ActionCard("Reverse", 20, color, Action.REVERSE));
-            Cards.add(new ActionCard("Draw2+", 20, color, Action.DRAW));
-
+            Cards.push(new ActionCard("Skip", 20, color, Action.SKIP));
+            Cards.push(new ActionCard("Reverse", 20, color, Action.REVERSE));
+            Cards.push(new ActionCard("Draw2+", 20, color, Action.DRAW));
+        }
+        for (int j = 0; j <= 9; j++) {
+            Cards.push(new NumberCard("" + j, j, color));
         }
         return Cards;
     }
@@ -104,8 +114,8 @@ public class Deck {
     public Stack<Card> wildCards() {
         Stack<Card> Cards = new Stack<Card>();
         for (int i = 0; i < 4; i++) {
-            Cards.add(new WildCard("Wild Color", 50));
-            Cards.add(new WildAction("Wild Draw", 50));
+            Cards.push(new WildCard("Wild Color", 50));
+            Cards.push(new WildAction("Wild Draw", 50));
         }
         return Cards;
     }
@@ -123,13 +133,15 @@ public class Deck {
             sum += (cards[i].size());
         }
         for (int i = 0; i < sum; i++) {
-            int j = rand.nextInt(n);
+            int j = rand.nextInt(2 * n - 1) % n;
             if (cards[j].empty()) {
                 i--;
                 continue;
             }
-            deck.add(cards[j].pop());
+
+            deck.push(cards[j].pop());
         }
+
     }
 
     /**
@@ -185,7 +197,7 @@ public class Deck {
     public boolean addToCounter(Player player, Card card) {
         // if type is wild card we should check whether it is Wild draw or not
         if (card.isWild()) {
-            if (!card.isAction()) {
+            if (card.isAction()) {
                 // wild draw usage should meet compulsion condition
                 if (possibleChoices(player).size() != 0)
                     return false;
@@ -196,7 +208,9 @@ public class Deck {
         } else if (!(counter.peek().doesMatch(card))) {
             return false;
         }
-        counter.add(card);
+        checkCounter(player);
+        drawcheck(player, card);
+        counter.push(card);
         return true;
     }
 
@@ -211,26 +225,46 @@ public class Deck {
         if (card.isAction()) {
             switch (((ActionCard) card).action) {
                 case SKIP:
-                    nextPlayer();
-                    break;
+                    if (!skip) {
+                        nextPlayer();
+                        skip = true;
+                        wdraw = false;
+                        draw = false;
+                        reverse = false;
+                    }
+                    return;
                 case REVERSE:
-                    direction = direction.reverse();
-                    break;
-                case DRAW: 
+                    if (!reverse) {
+                        direction = direction.reverse();
+                        reverse = true;
+                        skip = false;
+                        wdraw = false;
+                        draw = false;
+
+                    }
+                    return;
+                case DRAW:
+                    // if (!draw) {
                     // if (newCard.isAction())
-                    //     if (((ActionCard) newCard).action == Action.DRAW) {
-                    //         penalties += 2;
-                    //     } else {
-                    //         penalties = 0;
-                    //     }
-                    // for (int i = 0; i < 2 + penalties; i++)
-                    //     player.drawCard(card);
-                    break;
-                
+                    // for (int i = 0; i < 2; i++)
+                    // player.drawCard(card);
+                    // draw = true;
+                    // wdraw = false;
+                    // reverse = false;
+                    // skip = false;
+                    // }
+                    return;
+
                 case WDRAW:
-                    for (int i = 0; i < 4; i++)
-                        player.drawCard(card);
-                    break;
+                    if (!wdraw) {
+                        for (int i = 0; i < 4; i++)
+                            player.drawCard(card);
+                        wdraw = true;
+                        draw = false;
+                        reverse = false;
+                        skip = false;
+                    }
+                    return;
             }
         }
     }
@@ -322,8 +356,8 @@ public class Deck {
         // 2nd line
         System.out.println("\t\t\t║" + color.color(1) + "██████" + color.color(0) + "║");
         // 3rd line (card color)
-        System.out
-                .println("\t\t\t║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║");
+        System.out.println(
+                "\t\t\t║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║");
         // 4th line
         System.out.println("\t\t\t║" + color.color(1)
                 + (String.format("%4.4s", (card.isAction()) ? ((ActionCard) card).action.character() : "")) + "  "
@@ -333,4 +367,23 @@ public class Deck {
         player.playerCards();
     }
 
+    public void drawcheck(Player player, Card newCard) {
+        Card card = counter.peek();
+        if (card.isAction())
+            if (((ActionCard) card).action == Action.DRAW)
+                if (!draw) {
+                    if (newCard.isAction())
+                        if (((ActionCard) newCard).action == Action.DRAW) {
+                            penalties += 2;
+                        } else {
+                            penalties = 0;
+                        }
+                    for (int i = 0; i < 2 + penalties; i++)
+                        player.drawCard(card);
+                    draw = true;
+                    wdraw = false;
+                    reverse = false;
+                    skip = false;
+                }
+    }
 }
