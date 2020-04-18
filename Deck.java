@@ -286,9 +286,10 @@ public class Deck {
                         System.out.println("Penalty passed by using draw2+!");
                         return true;
                     }
-            while (!draw.isEmpty())
+            while (!draw.isEmpty()) {
                 player.getDeck().add(draw.pop());
-            penaltyNum++;
+                penaltyNum++;
+            }
         }
         player.playerCards();
         System.out.println("Penalty applicated! " + penaltyNum + " cards drawed");

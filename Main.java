@@ -21,7 +21,7 @@ public class Main {
         int hum = 1;
         do {
             hum = sc.nextInt();
-            if (hum >= 0 || hum < 6) {
+            if (hum >= 0 && hum < 6) {
                 break;
             }
             System.err.println("please enter an number between 0 and 5(including both)!");
@@ -31,7 +31,7 @@ public class Main {
         int bot = 1;
         do {
             bot = sc.nextInt();
-            if (bot >= 0 || bot < 6) {
+            if (bot >= 0 && bot < 6) {
                 break;
             }
             System.err.println("please enter an number between 0 and 5(including both)!");
