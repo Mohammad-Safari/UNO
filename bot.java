@@ -1,5 +1,11 @@
 import java.util.ArrayList;
 
+/**
+ * plays the game automatic player
+ * 
+ * @author M.Safari
+ * @version 1399.01.03
+ */
 public class bot extends Player {
     private static int number = 0;
 
