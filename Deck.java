@@ -94,18 +94,26 @@ public class Deck {
         // Cards.push(new ActionCard("Reverse", 20, color, Action.REVERSE));
         // Cards.push(new ActionCard("Draw2+", 20, color, Action.DRAW));
 
-        for (int j = 0; j <= 9; j++) {
-            Cards.push(new NumberCard("" + j, j, color));
-        }
+        // for (int j = 0; j <= 9; j++) {
+        // Cards.push(new NumberCard("" + j, j, color));
+        // }
+
+        Cards.push(new NumberCard("0", 0, color));
+
         for (int i = 0; i < 2; i++) {
+            for (int j = 9; j >= 5; j--)
+                Cards.push(new NumberCard("" + j, j, color));
+
             Cards.push(new ActionCard("Skip", 20, color, Action.SKIP));
             Cards.push(new ActionCard("Reverse", 20, color, Action.REVERSE));
             Cards.push(new ActionCard("Draw2+", 20, color, Action.DRAW));
+            for (int j = 1; j < 5; j++)
+                Cards.push(new NumberCard("" + j, j, color));
         }
 
-        for (int j = 1; j <= 9; j++) {
-            Cards.push(new NumberCard("" + j, j, color));
-        }
+        // for (int j = 1; j <= 9; j++) {
+        // Cards.push(new NumberCard("" + j, j, color));
+        // }
         return Cards;
     }
 
@@ -221,9 +229,9 @@ public class Deck {
     }
 
     /**
-     * applying game procedure rules(skip and reverse) due to last card addition to
-     * counter if an action card; should be called after putting card and before
-     * calling player next to apply reverse direction or skip
+     * checking what haapened after the last player pushed last card in
+     * deck(counter); should be called after putting card and before calling player
+     * next to apply reverse direction or skip
      * 
      */
     public void checkAfterPush() {
@@ -231,17 +239,21 @@ public class Deck {
         if (card.isAction())
             switch (((ActionCard) card).action) {
                 case SKIP:
+                    // skip player
                     nextPlayer();
                     return;
                 case REVERSE:
+                    // reverse turn direction and going on
                     direction = direction.reverse();
                     nextPlayer();
                     return;
                 case DRAW:
+                    // stating penalty
                     for (int i = 0; i < 2; i++)
                         draw.push(deck.pop());
                     return;
                 case WDRAW:
+                    // stating wild draw penalty
                     for (int i = 0; i < 4; i++)
                         wdraw.push(deck.pop());
                     return;
@@ -255,7 +267,6 @@ public class Deck {
      * should be called
      * 
      * @param player
-     * @param newCard
      */
     public boolean checkPenalty(Player player) {
         if (wdraw.isEmpty() && draw.isEmpty())
@@ -284,7 +295,13 @@ public class Deck {
         return true;
     }
 
-    ///////////////////////////////
+    /**
+     * gaining possible number card or action card and wild color card choices in
+     * specified states
+     * 
+     * @param player
+     * @return
+     */
     public ArrayList<Integer> possibleChoices(Player player) {
         Iterator<Card> cardIter = player.getDeck().iterator();
         ArrayList<Integer> possibleChoices = new ArrayList<Integer>();
@@ -298,6 +315,12 @@ public class Deck {
         return possibleChoices;
     }
 
+    /**
+     * gain possible wild draw card choice only if no other choice is avilable
+     * 
+     * @param player
+     * @return
+     */
     public ArrayList<Integer> possibleWildDraws(Player player) {
         Iterator<Card> cardIter = player.getDeck().iterator();
         ArrayList<Integer> possibleChoices = new ArrayList<Integer>();
@@ -311,8 +334,12 @@ public class Deck {
 
         return possibleChoices;
     }
-    ///////////////////////////////
 
+    /**
+     * when wild card is used it should be colored before pushing
+     * 
+     * @param card
+     */
     public void prepareWildColor(Card card) {
         Scanner sc = new Scanner(System.in);
         Color color = Color.RED;
@@ -344,6 +371,10 @@ public class Deck {
         sc.close();
     }
 
+    /**
+     * properly displayinf game direction, players list, cards , top card in
+     * counter, and current player deck indetail
+     */
     public void displayDeck(Player player) {
         if (!players.contains(player)) {
             System.err.println("player does not exist!");
