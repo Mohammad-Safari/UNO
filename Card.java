@@ -17,8 +17,9 @@ enum Color {
                 return ("\033[" + whereColor + "3m");
             case BLUE:
                 return ("\033[" + whereColor + "4m");
+            default:
+                return "";
         }
-        return "";
     }
 
     public String bold() {

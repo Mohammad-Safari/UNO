@@ -36,11 +36,10 @@ public class Deck {
     private RotateDirection direction;
     // a random object for making random numbers
     private Random rand;
-    private int penalties;
-    private boolean skip;
-    private boolean reverse;
-    private boolean draw;
-    private boolean wdraw;
+
+    // where penalties are reserved
+    private Stack<Card> draw;
+    private Stack<Card> wdraw;
 
     public Deck(Player[] players) {
         // start time of random object
@@ -50,10 +49,10 @@ public class Deck {
         for (int i = 0; i < players.length; i++) {
             this.players.add(players[i]);
         }
-        // starting player
-        current = this.players.listIterator(rand.nextInt(players.length));
         // default direction
         this.direction = RotateDirection.ClockWise;
+        // starting player
+        current = this.players.listIterator(rand.nextInt(players.length));
         // preparing cards and shuffling them
         deck = new Stack<Card>();
         {
@@ -64,7 +63,7 @@ public class Deck {
             Stack<Card> wildCards = wildCards();
             shuffle(redColorCards, yelColorCards, greColorCards, bluColorCards, wildCards);
         }
-        // providing cards for players
+        // providing 7 cards for players
         CardProvider();
         // first card in counter
         counter = new Stack<Card>();
@@ -77,13 +76,10 @@ public class Deck {
             while (!temp.empty()) {
                 deck.push(temp.pop());
             }
-            checkCounter(nextPlayer());
         }
-        penalties = 0;
-        skip = false;
-        reverse = false;
-        draw = false;
-        wdraw = false;
+        draw = new Stack<Card>();
+        wdraw = new Stack<Card>();
+        checkAfterPush();
     }
 
     /**
@@ -93,7 +89,12 @@ public class Deck {
      */
     public Stack<Card> colorCards(Color color) {
         Stack<Card> Cards = new Stack<Card>();
-        for (int j = 1; j <= 9; j++) {
+
+        // Cards.push(new ActionCard("Skip", 20, color, Action.SKIP));
+        // Cards.push(new ActionCard("Reverse", 20, color, Action.REVERSE));
+        // Cards.push(new ActionCard("Draw2+", 20, color, Action.DRAW));
+
+        for (int j = 0; j <= 9; j++) {
             Cards.push(new NumberCard("" + j, j, color));
         }
         for (int i = 0; i < 2; i++) {
@@ -101,7 +102,8 @@ public class Deck {
             Cards.push(new ActionCard("Reverse", 20, color, Action.REVERSE));
             Cards.push(new ActionCard("Draw2+", 20, color, Action.DRAW));
         }
-        for (int j = 0; j <= 9; j++) {
+
+        for (int j = 1; j <= 9; j++) {
             Cards.push(new NumberCard("" + j, j, color));
         }
         return Cards;
@@ -203,70 +205,83 @@ public class Deck {
                     return false;
             }
             // add some color to our wild card
-            prepareWildColor(card);
+            if (player instanceof bot) {
+                int r = rand.nextInt(4);
+                Color color = (r > 2) ? ((r == 3) ? Color.BLUE : Color.GREEN) : ((r == 0 ? Color.RED : Color.YELLOW));
+                ((ColorCard) card).setColor(color);
+            } else
+                prepareWildColor(card);
 
         } else if (!(counter.peek().doesMatch(card))) {
             return false;
         }
-        checkCounter(player);
-        drawcheck(player, card);
         counter.push(card);
+        checkAfterPush();
         return true;
     }
 
     /**
-     * applying rules of last card in counter if an action card
+     * applying game procedure rules(skip and reverse) due to last card addition to
+     * counter if an action card; should be called after putting card and before
+     * calling player next to apply reverse direction or skip
+     * 
+     */
+    public void checkAfterPush() {
+        Card card = counter.peek();
+        if (card.isAction())
+            switch (((ActionCard) card).action) {
+                case SKIP:
+                    nextPlayer();
+                    return;
+                case REVERSE:
+                    direction = direction.reverse();
+                    nextPlayer();
+                    return;
+                case DRAW:
+                    for (int i = 0; i < 2; i++)
+                        draw.push(deck.pop());
+                    return;
+                case WDRAW:
+                    for (int i = 0; i < 4; i++)
+                        wdraw.push(deck.pop());
+                    return;
+                default:
+                    break;
+            }
+    }
+
+    /**
+     * applying rules of last penalty card for player in counter if an action card
+     * should be called
      * 
      * @param player
      * @param newCard
      */
-    public void checkCounter(Player player) {
-        Card card = counter.peek();
-        if (card.isAction()) {
-            switch (((ActionCard) card).action) {
-                case SKIP:
-                    if (!skip) {
-                        nextPlayer();
-                        skip = true;
-                        wdraw = false;
-                        draw = false;
-                        reverse = false;
-                    }
-                    return;
-                case REVERSE:
-                    if (!reverse) {
-                        direction = direction.reverse();
-                        reverse = true;
-                        skip = false;
-                        wdraw = false;
-                        draw = false;
-
-                    }
-                    return;
-                case DRAW:
-                    // if (!draw) {
-                    // if (newCard.isAction())
-                    // for (int i = 0; i < 2; i++)
-                    // player.drawCard(card);
-                    // draw = true;
-                    // wdraw = false;
-                    // reverse = false;
-                    // skip = false;
-                    // }
-                    return;
-
-                case WDRAW:
-                    if (!wdraw) {
-                        for (int i = 0; i < 4; i++)
-                            player.drawCard(card);
-                        wdraw = true;
-                        draw = false;
-                        reverse = false;
-                        skip = false;
-                    }
-                    return;
-            }
+    public boolean checkPenalty(Player player) {
+        if (wdraw.isEmpty() && draw.isEmpty())
+            return false;
+        displayDeck(player);
+        int penaltyNum = 0;
+        while (!wdraw.isEmpty()) {
+            player.getDeck().add(wdraw.pop());
+            penaltyNum++;
         }
+        if (!draw.isEmpty()) {
+            for (Card card : player.getDeck())
+                if (card.isAction())
+                    if (((ActionCard) card).action == Action.DRAW) {
+                        player.putCard(this, player.getDeck().indexOf(card));
+                        player.playerCards();
+                        System.out.println("Penalty passed by using draw2+!");
+                        return true;
+                    }
+            while (!draw.isEmpty())
+                player.getDeck().add(draw.pop());
+            penaltyNum++;
+        }
+        player.playerCards();
+        System.out.println("Penalty applicated! " + penaltyNum + " cards drawed");
+        return true;
     }
 
     ///////////////////////////////
@@ -367,23 +382,4 @@ public class Deck {
         player.playerCards();
     }
 
-    public void drawcheck(Player player, Card newCard) {
-        Card card = counter.peek();
-        if (card.isAction())
-            if (((ActionCard) card).action == Action.DRAW)
-                if (!draw) {
-                    if (newCard.isAction())
-                        if (((ActionCard) newCard).action == Action.DRAW) {
-                            penalties += 2;
-                        } else {
-                            penalties = 0;
-                        }
-                    for (int i = 0; i < 2 + penalties; i++)
-                        player.drawCard(card);
-                    draw = true;
-                    wdraw = false;
-                    reverse = false;
-                    skip = false;
-                }
-    }
 }

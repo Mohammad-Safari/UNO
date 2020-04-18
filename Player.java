@@ -10,7 +10,7 @@ public class Player {
     // player name
     public final String name;
     // players cards
-    private List<Card> deck;
+    protected List<Card> deck;
     // players score
     private int score;
 
