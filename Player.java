@@ -63,4 +63,39 @@ public class Player {
     public List<Card> getDeck() {
         return deck;
     }
+
+    public void playerCards() {
+        // first line
+        System.out.println();
+        for (Card card : deck)
+            System.out.print("╔══════╗ ");
+        // 2nd line
+        System.out.println();
+        for (Card card : deck) {
+            Color color = ((ColorCard) card).getColor();
+            System.out.print("║" + color.color(1) + "██████" + color.color(0) + "║ ");
+        }
+        // 3rd line (card color)
+        System.out.println();
+        for (Card card : deck) {
+            Color color = ((ColorCard) card).getColor();
+            System.out.print(
+                    "║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║ ");
+        }
+        // 4th line
+        System.out.println();
+        for (Card card : deck) {
+            Color color = ((ColorCard) card).getColor();
+            System.out.print("║" + color.color(1)
+                    + (String.format("%4.4s", (card.isAction()) ? ((ActionCard) card).action.character() : "")) + "  "
+                    + color.color(0) + "║ ");
+        }
+        // last line
+        System.out.println();
+        for (Card card : deck) {
+            Color color = ((ColorCard) card).getColor();
+            System.out.print("╚══════╝ ");
+        }
+        System.out.println();
+    }
 }

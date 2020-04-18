@@ -56,9 +56,9 @@ public class Deck {
             Stack<Card> redColorCards = colorCards(Color.RED);
             Stack<Card> yelColorCards = colorCards(Color.YELLOW);
             Stack<Card> greColorCards = colorCards(Color.GREEN);
-            Stack<Card> bluColorCards = colorCards(Color.YELLOW);
+            Stack<Card> bluColorCards = colorCards(Color.BLUE);
             Stack<Card> wildCards = wildCards();
-            shuffle(redColorCards, yelColorCards, greColorCards, bluColorCards, wildCards);
+            shuffle(redColorCards, yelColorCards, wildCards, greColorCards, bluColorCards);
         }
         // providing cards for players
         CardProvider();
@@ -118,6 +118,7 @@ public class Deck {
     public void shuffle(Stack<Card>... cards) {
         int n = cards.length;
         int sum = 0;
+        // counting all cards
         for (int i = 0; i < n; i++) {
             sum += (cards[i].size());
         }
@@ -195,7 +196,6 @@ public class Deck {
         } else if (!(counter.peek().doesMatch(card))) {
             return false;
         }
-        checkCounter(player, card);
         counter.add(card);
         return true;
     }
@@ -206,7 +206,7 @@ public class Deck {
      * @param player
      * @param newCard
      */
-    public void checkCounter(Player player, Card newCard) {
+    public void checkCounter(Player player) {
         Card card = counter.peek();
         if (card.isAction()) {
             switch (((ActionCard) card).action) {
@@ -216,18 +216,17 @@ public class Deck {
                 case REVERSE:
                     direction = direction.reverse();
                     break;
-                case DRAW: {
-                    if (newCard.isAction())
-                        if (((ActionCard) newCard).action == Action.DRAW) {
-                            penalties += 2;
-                        } else {
-                            penalties = 0;
-                        }
-
-                    for (int i = 0; i < 2 + penalties; i++)
-                        player.drawCard(card);
+                case DRAW: 
+                    // if (newCard.isAction())
+                    //     if (((ActionCard) newCard).action == Action.DRAW) {
+                    //         penalties += 2;
+                    //     } else {
+                    //         penalties = 0;
+                    //     }
+                    // for (int i = 0; i < 2 + penalties; i++)
+                    //     player.drawCard(card);
                     break;
-                }
+                
                 case WDRAW:
                     for (int i = 0; i < 4; i++)
                         player.drawCard(card);
@@ -301,16 +300,37 @@ public class Deck {
             System.err.println("player does not exist!");
             return;
         }
-        System.out.println("\033[31mplayer turn:");
+        //
+        ColorCard card = ((ColorCard) counter.peek());
+        Color color = card.getColor();
+        // showing player list
+        System.out.println(Color.RED.color(1) + "player turn:" + Color.RED.color(0));
         for (Player ply : players) {
-            System.out.printf(" %5s ", (ply.equals(player)) ? ("\033[1;31m" + ply.name + "\033[0m") : (ply.name));
+            System.out.printf(" %5s(%2d) ",
+                    (ply.equals(player)) ? (Color.RED.bold() + ply.name + Color.RED.color(0)) : (ply.name),
+                    ply.getDeck().size());
         }
-        System.out
-                .println("\n\n\033[34mplaying direction:\033[0m " + ((direction == RotateDirection.ClockWise) ? ("\033[1;4;34m → \033[0m ←")
-                        : (" → \033[1;4;34m ← \033[0m")));
-        System.out.println("\033[36mtop card:");
+        //
+        System.out.println("\n\n" + Color.BLUE.color(1) + "playing direction:" + Color.BLUE.color(0)
+                + ((direction == RotateDirection.ClockWise)
+                        ? (Color.BLUE.underLine() + " → " + Color.BLUE.color(0) + " ←")
+                        : (" → " + Color.BLUE.underLine() + " ← " + Color.BLUE.color(0))));
+        //
+        System.out.println("\n\033[36mtop card:\033[0m");
+        // first line
         System.out.println("\t\t\t╔══════╗");
-        System.out.println("\t\t\t║██████║");
-
+        // 2nd line
+        System.out.println("\t\t\t║" + color.color(1) + "██████" + color.color(0) + "║");
+        // 3rd line (card color)
+        System.out
+                .println("\t\t\t║" + color.color(1) + (String.format("%4.4s", card.name)) + "  " + color.color(0) + "║");
+        // 4th line
+        System.out.println("\t\t\t║" + color.color(1)
+                + (String.format("%4.4s", (card.isAction()) ? ((ActionCard) card).action.character() : "")) + "  "
+                + color.color(0) + "║");
+        // last line
+        System.out.println("\t\t\t╚══════╝");
+        player.playerCards();
     }
+
 }

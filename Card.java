@@ -2,23 +2,29 @@
  * possible types of color
  */
 enum Color {
-    RED, YELLOW, GREEN, BLUE;
+    RED, YELLOW, GREEN, BLUE, WILD;
 
     public String color(int whereColor) {
-        whereColor = (whereColor > 0) ? 3 : ((whereColor < 0) ? 4 : 0);
         if (whereColor == 0)
             return "\033[0m";
+        whereColor = (whereColor > 0) ? 3 : ((whereColor < 0) ? 4 : 0);
         switch (this) {
             case RED:
                 return ("\033[" + whereColor + "1m");
-            case YELLOW:
-                return ("\033[" + whereColor + "2m");
             case GREEN:
+                return ("\033[" + whereColor + "2m");
+            case YELLOW:
                 return ("\033[" + whereColor + "3m");
             case BLUE:
                 return ("\033[" + whereColor + "4m");
         }
-        return null;
+        return "";
+    }
+    public String bold(){
+        return ("\033[1m"+this.color(1));
+    }
+    public String underLine(){
+        return("\033[4m" + this.bold());
     }
 }
 
@@ -33,11 +39,11 @@ enum Action {
             case SKIP:
                 return "⛔";
             case REVERSE:
-                return "\033[1m⇆\033[0m";
+                return "⇆";
             case DRAW:
                 return "2+";
             case WDRAW:
-                return "\033[1m☣\033[0m";
+                return "☣";
             default:
                 return "NON";
         }
@@ -96,22 +102,12 @@ abstract class ColorCard extends Card {
     }
 
     /**
-     * only used for wild cards
-     * 
-     * @param name
-     * @param score
-     */
-    public ColorCard(String name, int score) {
-        super(name, score);
-    }
-
-    /**
      * only for wild cards
      * 
      * @param color
      */
     public void setColor(Color color) {
-        if (color == null)
+        if (color == Color.WILD)
             this.color = color;
     }
 
@@ -119,7 +115,7 @@ abstract class ColorCard extends Card {
      * checking whether card is colored or not
      */
     public boolean isColored() {
-        return (color != null);
+        return (color != Color.WILD);
     }
 
     /**
@@ -155,17 +151,6 @@ class NumberCard extends ColorCard {
         this.number = number;
     }
 
-    /**
-     * only used for wild draw cards
-     * 
-     * @param name
-     * @param score
-     */
-    public NumberCard(String name, int score, int number) {
-        super(name, score);
-        this.number = number;
-    }
-
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
@@ -189,17 +174,6 @@ class ActionCard extends ColorCard {
         this.action = action;
     }
 
-    /**
-     * only used for wild draw cards
-     * 
-     * @param name
-     * @param score
-     */
-    public ActionCard(String name, int score, Action action) {
-        super(name, score);
-        this.action = action;
-    }
-
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
@@ -217,13 +191,13 @@ class ActionCard extends ColorCard {
  */
 class WildCard extends ColorCard {
     public WildCard(String name, int score) {
-        super(name, score);
+        super(name, score, Color.WILD);
     }
 
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
-            if (this.sameColor(card))
+            if (this.isColored()&&this.sameColor(card))
                 return true;
         return false;
     }
@@ -235,13 +209,13 @@ class WildCard extends ColorCard {
 class WildAction extends ActionCard {
 
     public WildAction(String name, int score) {
-        super(name, score, Action.WDRAW);
+        super(name, score, Color.WILD, Action.WDRAW);
     }
 
     @Override
     public boolean doesMatch(Card card) {
         if (card instanceof ColorCard)
-            if (this.sameColor(card))
+            if (this.isColored()&&this.sameColor(card))
                 return true;
         return false;
     }

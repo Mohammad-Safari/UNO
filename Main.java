@@ -47,12 +47,20 @@ public class Main {
         players[2] = new Player("Saeed");
         Deck gDeck = new Deck(players);
         // preparing current player
-        Player player = gDeck.nextPlayer();
-        gDeck.displayDeck(player);
-        while (player.isDeckEmpty()) {
-
-            
+        Player player;
+        do {
             player = gDeck.nextPlayer();
-        }
+            gDeck.displayDeck(player);
+            Thread.sleep(500);
+            if (gDeck.possibleChoices(player).size() == 0 && gDeck.possibleWildDraws(player).size() == 0) {
+                System.out.println("Press enter to draw a card!");
+                sc.next();
+                player.drawCard(card);
+            }
+            System.out.println("please enter the card number to put:");
+
+            System.out.println("select");
+
+        } while (player.isDeckEmpty());
     }
 }
