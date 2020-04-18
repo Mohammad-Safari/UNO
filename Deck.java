@@ -36,8 +36,9 @@ public class Deck {
     private RotateDirection direction;
     // a random object for making random numbers
     private Random rand;
+    private int penalties;
 
-    public Deck(Player... players) {
+    public Deck(Player[] players) {
         // start time of random object
         rand = new Random();
         // filling players list
@@ -46,7 +47,7 @@ public class Deck {
             this.players.add(players[i]);
         }
         // starting player
-        current = this.players.listIterator(rand.nextInt(this.players.size()));
+        current = this.players.listIterator(rand.nextInt(players.length));
         // default direction
         this.direction = RotateDirection.ClockWise;
         // preparing cards and shuffling them
@@ -73,6 +74,7 @@ public class Deck {
                 deck.add(temp.pop());
             }
         }
+        penalties = 0;
     }
 
     /**
@@ -82,10 +84,10 @@ public class Deck {
      */
     public Stack<Card> colorCards(Color color) {
         Stack<Card> Cards = new Stack<Card>();
-        Cards.add(new ColorCard("0", 0, color));
+        Cards.add(new NumberCard("0", 0, color));
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 9; j++) {
-                Cards.add(new ColorCard("" + j, j, color));
+                Cards.add(new NumberCard("" + j, j, color));
             }
             Cards.add(new ActionCard("Skip", 20, color, Action.SKIP));
             Cards.add(new ActionCard("Reverse", 20, color, Action.REVERSE));
@@ -156,7 +158,7 @@ public class Deck {
             return current.next();
         } else {
             if (!current.hasPrevious())
-                current = players.listIterator(players.size() - 1);
+                current = players.listIterator(players.size());
             return current.previous();
         }
     }
@@ -184,7 +186,7 @@ public class Deck {
         if (card.isWild()) {
             if (!card.isAction()) {
                 // wild draw usage should meet compulsion condition
-                if (possibleChoices(player) != null)
+                if (possibleChoices(player).size() != 0)
                     return false;
             }
             // add some color to our wild card
@@ -193,25 +195,73 @@ public class Deck {
         } else if (!(counter.peek().doesMatch(card))) {
             return false;
         }
-        checkCounter(card);
+        checkCounter(player, card);
         counter.add(card);
         return true;
     }
 
-    ///////////////////////////////
-    public void checkCounter(Card newCard) {
+    /**
+     * applying rules of last card in counter if an action card
+     * 
+     * @param player
+     * @param newCard
+     */
+    public void checkCounter(Player player, Card newCard) {
         Card card = counter.peek();
         if (card.isAction()) {
-            if (((ActionCard) card).action == Action.DRAW) {
-            } else if (((ActionCard) card).action == Action.WDRAW) {
+            switch (((ActionCard) card).action) {
+                case SKIP:
+                    nextPlayer();
+                    break;
+                case REVERSE:
+                    direction = direction.reverse();
+                    break;
+                case DRAW: {
+                    if (newCard.isAction())
+                        if (((ActionCard) newCard).action == Action.DRAW) {
+                            penalties += 2;
+                        } else {
+                            penalties = 0;
+                        }
+
+                    for (int i = 0; i < 2 + penalties; i++)
+                        player.drawCard(card);
+                    break;
+                }
+                case WDRAW:
+                    for (int i = 0; i < 4; i++)
+                        player.drawCard(card);
+                    break;
             }
         }
     }
 
     ///////////////////////////////
-    public int[] possibleChoices(Player player) {
+    public ArrayList<Integer> possibleChoices(Player player) {
+        Iterator<Card> cardIter = player.getDeck().iterator();
+        ArrayList<Integer> possibleChoices = new ArrayList<Integer>();
+        Card card;
+        while (cardIter.hasNext()) {
+            card = cardIter.next();
+            if ((card.isWild() && (!card.isAction())) || (counter.peek().doesMatch(card)))
+                possibleChoices.add(player.getDeck().indexOf(card));
+        }
 
-        return null;
+        return possibleChoices;
+    }
+
+    public ArrayList<Integer> possibleWildDraws(Player player) {
+        Iterator<Card> cardIter = player.getDeck().iterator();
+        ArrayList<Integer> possibleChoices = new ArrayList<Integer>();
+        Card card;
+        if (possibleChoices(player).size() == 0)
+            while (cardIter.hasNext()) {
+                card = cardIter.next();
+                if (card.isWild() && card.isAction())
+                    possibleChoices.add(player.getDeck().indexOf(card));
+            }
+
+        return possibleChoices;
     }
     ///////////////////////////////
 
@@ -246,4 +296,21 @@ public class Deck {
         sc.close();
     }
 
+    public void displayDeck(Player player) {
+        if (!players.contains(player)) {
+            System.err.println("player does not exist!");
+            return;
+        }
+        System.out.println("\033[31mplayer turn:");
+        for (Player ply : players) {
+            System.out.printf(" %5s ", (ply.equals(player)) ? ("\033[1;31m" + ply.name + "\033[0m") : (ply.name));
+        }
+        System.out
+                .println("\n\n\033[34mplaying direction:\033[0m " + ((direction == RotateDirection.ClockWise) ? ("\033[1;4;34m → \033[0m ←")
+                        : (" → \033[1;4;34m ← \033[0m")));
+        System.out.println("\033[36mtop card:");
+        System.out.println("\t\t\t╔══════╗");
+        System.out.println("\t\t\t║██████║");
+
+    }
 }

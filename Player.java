@@ -56,4 +56,11 @@ public class Player {
     public boolean isDeckEmpty() {
         return deck.isEmpty();
     }
+
+    /**
+     * @return the deck
+     */
+    public List<Card> getDeck() {
+        return deck;
+    }
 }

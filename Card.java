@@ -26,7 +26,22 @@ enum Color {
  * possible types of actions
  */
 enum Action {
-    SKIP, REVERSE, DRAW, WDRAW
+    SKIP, REVERSE, DRAW, WDRAW;
+
+    public String character() {
+        switch (this) {
+            case SKIP:
+                return "⛔";
+            case REVERSE:
+                return "\033[1m⇆\033[0m";
+            case DRAW:
+                return "2+";
+            case WDRAW:
+                return "\033[1m☣\033[0m";
+            default:
+                return "NON";
+        }
+    }
 }
 
 /**
@@ -57,7 +72,7 @@ abstract public class Card {
      * checking whether the ard is sort of wild or not
      */
     public boolean isWild() {
-        return (this instanceof WildCard);
+        return (this instanceof WildCard || this instanceof WildAction);
     }
 
     /**
@@ -135,8 +150,8 @@ abstract class ColorCard extends Card {
 class NumberCard extends ColorCard {
     public final int number;
 
-    public NumberCard(String name, int score, Color color, int number) {
-        super(name, score, color);
+    public NumberCard(String name, int number, Color color) {
+        super(name, number, color);
         this.number = number;
     }
 
